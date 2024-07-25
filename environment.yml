@@ -1,0 +1,12 @@
+name: hnn
+channels:
+  - conda-forge
+dependencies:
+  - python=3.10
+  - ipykernel
+  - numpy
+  - scipy
+  - gym
+  - imageio
+  - matplotlib
+  - pandas
