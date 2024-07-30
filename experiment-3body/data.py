@@ -84,8 +84,8 @@ def random_config(nu=2e-1, min_radius=0.9, max_radius=1.2):
   '''This is not principled at all yet'''
   state = np.zeros((3,5))
   state[:,0] = 1
-  p1 = 2*np.random.rand(2) - 1
-  r = np.random.rand() * (max_radius-min_radius) + min_radius
+  p1 = 2*jax.random.rand(2) - 1
+  r = jax.random.rand() * (max_radius-min_radius) + min_radius
   
   p1 *= r/np.sqrt( np.sum((p1**2)) )
   p2 = rotate2d(p1, theta=2*np.pi/3)
@@ -99,9 +99,9 @@ def random_config(nu=2e-1, min_radius=0.9, max_radius=1.2):
   v3 = rotate2d(v2, theta=2*np.pi/3)
   
   # make the circular orbits slightly chaotic
-  v1 *= 1 + nu*(2*np.random.rand(2) - 1)
-  v2 *= 1 + nu*(2*np.random.rand(2) - 1)
-  v3 *= 1 + nu*(2*np.random.rand(2) - 1)
+  v1 *= 1 + nu*(2*jax.random.rand(2) - 1)
+  v2 *= 1 + nu*(2*jax.random.rand(2) - 1)
+  v3 *= 1 + nu*(2*jax.random.rand(2) - 1)
 
   state[0,1:3], state[0,3:5] = p1, v1
   state[1,1:3], state[1,3:5] = p2, v2

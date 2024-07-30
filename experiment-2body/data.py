@@ -78,13 +78,13 @@ def get_orbit(state, update_fn=update, t_points=100, t_span=[0,2], **kwargs):
 def random_config(orbit_noise=5e-2, min_radius=0.5, max_radius=1.5):
     state = np.zeros((2,5))
     state[:,0] = 1
-    pos = np.random.rand(2) * (max_radius-min_radius) + min_radius
+    pos = jax.random.rand(2) * (max_radius-min_radius) + min_radius
     r = np.sqrt( np.sum((pos**2)) )
 
     # velocity that yields a circular orbit
     vel = np.flipud(pos) / (2 * r**1.5)
     vel[0] *= -1
-    vel *= 1 + orbit_noise*np.random.randn()
+    vel *= 1 + orbit_noise*jax.random.randn()
 
     # make the circular orbits SLIGHTLY elliptical
     state[:,1:3] = pos

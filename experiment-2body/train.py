@@ -36,7 +36,7 @@ def get_args():
 def train(args):
   # set random seed
   torch.manual_seed(args.seed)
-  np.random.seed(args.seed)
+  key = jax.random.PRNGKey(args.seed)
 
   # init model and optimizer
   if args.verbose:

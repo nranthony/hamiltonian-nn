@@ -1,8 +1,8 @@
 # Hamiltonian Neural Networks | 2019
 # Sam Greydanus, Misko Dzamba, Jason Yosinski
 
-import autograd
-import autograd.numpy as np
+import jax
+import jax.numpy as np
 import scipy.integrate
 solve_ivp = scipy.integrate.solve_ivp
 
@@ -68,7 +68,7 @@ def pixelhnn_loss(x, x_next, model, return_scalar=True):
 def train(args):
   # set random seed
   torch.manual_seed(args.seed)
-  np.random.seed(args.seed)
+  key = jax.random.PRNGKey(args.seed)
 
   # init model and optimizer
   autoencoder = MLPAutoencoder(args.input_dim, args.hidden_dim, args.latent_dim,

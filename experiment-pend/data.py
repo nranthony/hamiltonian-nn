@@ -1,8 +1,8 @@
 # Hamiltonian Neural Networks | 2019
 # Sam Greydanus, Misko Dzamba, Jason Yosinski
 
-import autograd
-import autograd.numpy as np
+import jax
+import jax.numpy as np
 
 import scipy.integrate
 solve_ivp = scipy.integrate.solve_ivp
@@ -13,7 +13,7 @@ def hamiltonian_fn(coords):
     return H
 
 def dynamics_fn(t, coords):
-    dcoords = autograd.grad(hamiltonian_fn)(coords)
+    dcoords = jax.grad(hamiltonian_fn)(coords)
     dqdt, dpdt = np.split(dcoords,2)
     S = np.concatenate([dpdt, -dqdt], axis=-1)
     return S
@@ -23,9 +23,9 @@ def get_trajectory(t_span=[0,3], timescale=15, radius=None, y0=None, noise_std=0
     
     # get initial state
     if y0 is None:
-        y0 = np.random.rand(2)*2.-1
+        y0 = jax.random.rand(2)*2.-1
     if radius is None:
-        radius = np.random.rand() + 1.3 # sample a range of radii
+        radius = jax.random.rand() + 1.3 # sample a range of radii
     y0 = y0 / np.sqrt((y0**2).sum()) * radius ## set the appropriate radius
 
     spring_ivp = solve_ivp(fun=dynamics_fn, t_span=t_span, y0=y0, t_eval=t_eval, rtol=1e-10, **kwargs)
@@ -35,15 +35,15 @@ def get_trajectory(t_span=[0,3], timescale=15, radius=None, y0=None, noise_std=0
     dqdt, dpdt = np.split(dydt,2)
     
     # add noise
-    q += np.random.randn(*q.shape)*noise_std
-    p += np.random.randn(*p.shape)*noise_std
+    q += jax.random.randn(*q.shape)*noise_std
+    p += jax.random.randn(*p.shape)*noise_std
     return q, p, dqdt, dpdt, t_eval
 
 def get_dataset(seed=0, samples=50, test_split=0.5, **kwargs):
     data = {'meta': locals()}
 
     # randomly sample inputs
-    np.random.seed(seed)
+    key = jax.random.PRNGKey(seed)
     xs, dxs = [], []
     for s in range(samples):
         x, y, dx, dy, t = get_trajectory(**kwargs)

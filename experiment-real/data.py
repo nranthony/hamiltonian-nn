@@ -3,8 +3,8 @@
 
 import os, sys
 from urllib.request import urlretrieve
-import autograd
-import autograd.numpy as np
+import jax
+import jax.numpy as np
 
 import scipy.integrate
 solve_ivp = scipy.integrate.solve_ivp
@@ -67,7 +67,7 @@ def hamiltonian_fn(coords):
   return H
 
 def dynamics_fn(t, coords):
-  dcoords = autograd.grad(hamiltonian_fn)(coords)
+  dcoords = jax.grad(hamiltonian_fn)(coords)
   dqdt, dpdt = np.split(dcoords,2)
   S = -np.concatenate([dpdt, -dqdt], axis=-1)
   return S
