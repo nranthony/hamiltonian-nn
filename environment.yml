@@ -2,10 +2,11 @@ name: hnn
 channels:
   - conda-forge
 dependencies:
-  - python=3.10
+  - python=3.8
   - ipykernel
   - numpy
   - scipy
+  - autograd
   - gym
   - imageio
   - matplotlib
