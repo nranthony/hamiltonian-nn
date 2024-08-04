@@ -1,5 +1,7 @@
 # Hamiltonian Neural Networks | 2019
 # Sam Greydanus, Misko Dzamba, Jason Yosinski
+# Extension to double pendulum | 2024
+# Neil Anthony
 
 import autograd
 import autograd.numpy as np
@@ -7,9 +9,26 @@ import autograd.numpy as np
 import scipy.integrate
 solve_ivp = scipy.integrate.solve_ivp
 
-def hamiltonian_fn(coords):
-    q, p = np.split(coords,2)
-    H = 3*(1-np.cos(q)) + p**2 # pendulum hamiltonian
+import numpy as np
+
+def hamiltonian_fn(coords, m1=1, m2=1, l1=1, l2=1, g=3):
+    q, p = np.split(coords, 2)
+    theta1, theta2 = q
+    p_theta1, p_theta2 = p
+
+    denominator = 2 * m2 * l1**2 * l2**2 * (m1 + m2 * np.sin(theta1 - theta2)**2)
+    kinetic_energy = (
+        m2 * l1**2 * p_theta1**2 +
+        (m1 + m2) * l1**2 * l2**2 * p_theta2**2 -
+        2 * m2 * l1 * l2 * p_theta1 * p_theta2 * np.cos(theta1 - theta2)
+    ) / denominator
+    
+    potential_energy = (
+        -(m1 + m2) * g * l1 * np.cos(theta1) -
+        m2 * g * l2 * np.cos(theta2)
+    )
+    
+    H = kinetic_energy + potential_energy
     return H
 
 def dynamics_fn(t, coords):
@@ -28,9 +47,9 @@ def get_trajectory(t_span=[0,3], timescale=15, radius=None, y0=None, noise_std=0
         radius = np.random.rand() + 1.3 # sample a range of radii
     y0 = y0 / np.sqrt((y0**2).sum()) * radius ## set the appropriate radius
 
-    spring_ivp = solve_ivp(fun=dynamics_fn, t_span=t_span, y0=y0, t_eval=t_eval, rtol=1e-10, **kwargs)
-    q, p = spring_ivp['y'][0], spring_ivp['y'][1]
-    dydt = [dynamics_fn(None, y) for y in spring_ivp['y'].T]
+    doublepend_ivp = solve_ivp(fun=dynamics_fn, t_span=t_span, y0=y0, t_eval=t_eval, rtol=1e-10, **kwargs)
+    q, p = doublepend_ivp['y'][0], doublepend_ivp['y'][1]
+    dydt = [dynamics_fn(None, y) for y in doublepend_ivp['y'].T]
     dydt = np.stack(dydt).T
     dqdt, dpdt = np.split(dydt,2)
     
