@@ -56,7 +56,7 @@ def train(args):
 
   # vanilla train loop
   stats = {'train_loss': [], 'test_loss': []}
-  for step in range(args.total_steps+1):
+  for step in range(args.total_steps+1): 
     
     # train step
     dxdt_hat = model.rk4_time_derivative(x) if args.use_rk4 else model.time_derivative(x)

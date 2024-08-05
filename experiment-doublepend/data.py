@@ -9,7 +9,7 @@ import autograd.numpy as np
 import scipy.integrate
 solve_ivp = scipy.integrate.solve_ivp
 
-import numpy as np
+# import numpy as np
 
 def hamiltonian_fn(coords, m1=1, m2=1, l1=1, l2=1, g=3):
     q, p = np.split(coords, 2)
@@ -41,11 +41,13 @@ def get_trajectory(t_span=[0,3], timescale=15, radius=None, y0=None, noise_std=0
     t_eval = np.linspace(t_span[0], t_span[1], int(timescale*(t_span[1]-t_span[0])))
     
     # get initial state
-    if y0 is None:
-        y0 = np.random.rand(2)*2.-1
-    if radius is None:
-        radius = np.random.rand() + 1.3 # sample a range of radii
-    y0 = y0 / np.sqrt((y0**2).sum()) * radius ## set the appropriate radius
+    # if y0 is None:
+    #     y0 = np.random.rand(2)*2.-1
+    # if radius is None:
+    #     radius = np.random.rand() + 1.3 # sample a range of radii
+    # y0 = y0 / np.sqrt((y0**2).sum()) * radius ## set the appropriate radius
+    y0 = [np.pi / 4, np.pi / 4, 0.0, 0.0]
+
 
     doublepend_ivp = solve_ivp(fun=dynamics_fn, t_span=t_span, y0=y0, t_eval=t_eval, rtol=1e-10, **kwargs)
     q, p = doublepend_ivp['y'][0], doublepend_ivp['y'][1]
