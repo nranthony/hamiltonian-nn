@@ -22,7 +22,7 @@ def get_args():
     parser.add_argument('--nonlinearity', default='tanh', type=str, help='neural net nonlinearity')
     parser.add_argument('--total_steps', default=2000, type=int, help='number of gradient steps')
     parser.add_argument('--print_every', default=200, type=int, help='number of gradient steps between prints')
-    parser.add_argument('--name', default='pend', type=str, help='only one option right now')
+    parser.add_argument('--name', default='doublepend', type=str, help='only one option right now')
     parser.add_argument('--baseline', dest='baseline', action='store_true', help='run baseline or experiment?')
     parser.add_argument('--use_rk4', dest='use_rk4', action='store_true', help='integrate derivative with RK4')
     parser.add_argument('--verbose', dest='verbose', action='store_true', help='verbose?')
@@ -48,7 +48,7 @@ def train(args):
   optim = torch.optim.Adam(model.parameters(), args.learn_rate, weight_decay=1e-4)
 
   # arrange data
-  data = get_dataset(seed=args.seed)
+  data = get_dataset(args.name, args.save_dir, seed=args.seed)
   x = torch.tensor( data['x'], requires_grad=True, dtype=torch.float32)
   test_x = torch.tensor( data['test_x'], requires_grad=True, dtype=torch.float32)
   dxdt = torch.Tensor(data['dx'])
