@@ -6,8 +6,14 @@
 import jax
 import jax.numpy as jnp
 import numpy as np
-from utils import to_pickle, from_pickle
 import scipy.integrate
+
+import os, sys
+THIS_DIR = os.path.dirname(os.path.abspath(__file__))
+PARENT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(PARENT_DIR)
+from utils import to_pickle, from_pickle
+
 solve_ivp = scipy.integrate.solve_ivp
 
 @jax.jit
@@ -45,7 +51,7 @@ def get_trajectory(t_span=[0, 3], timescale=15, radius=None, y0=None, noise_std=
     y0 = [jnp.pi / 4, jnp.pi / 4, 0.0, 0.0]
 
     doublepend_ivp = solve_ivp(fun=dynamics_fn, t_span=t_span, y0=y0, t_eval=t_eval, rtol=1e-10, **kwargs)
-    q, p = doublepend_ivp['y'][0], doublepend_ivp['y'][1]
+    q, p = doublepend_ivp['y'][:2], doublepend_ivp['y'][2:]
     dydt = [dynamics_fn(None, y) for y in doublepend_ivp['y'].T]
     dydt = jnp.stack(dydt).T
     dqdt, dpdt = jnp.split(dydt, 2)
@@ -62,8 +68,8 @@ def make_pend_dataset(seed=0, samples=50, test_split=0.5, **kwargs):
     for s in range(samples):
         kwargs['key'] = jax.random.PRNGKey(s)
         x, y, dx, dy, t = get_trajectory(**kwargs)
-        xs.append(jnp.stack([x, y]).T)
-        dxs.append(jnp.stack([dx, dy]).T)
+        xs.append(jnp.concat([x, y]).T)
+        dxs.append(jnp.concat([dx, dy]).T)
         
     data['x'] = jnp.concatenate(xs)
     data['dx'] = jnp.concatenate(dxs).squeeze()
@@ -72,7 +78,7 @@ def make_pend_dataset(seed=0, samples=50, test_split=0.5, **kwargs):
     split_ix = int(len(data['x']) * test_split)
     split_data = {}
     for k in ['x', 'dx']:
-        split_data[k], split_data['test_' + k] = data[k][:split_ix], data[k][split_ix:]
+        split_data[k], split_data['test_' + k] = np.array(data[k][:split_ix]), np.array(data[k][split_ix:])
     data = split_data
     return data
 
@@ -96,15 +102,17 @@ def get_field(xmin=-1.2, xmax=1.2, ymin=-1.2, ymax=1.2, gridsize=20):
 def get_dataset(experiment_name, save_dir, **kwargs):
     '''Returns an orbital dataset. Also constructs
     the dataset if no saved version is available.'''
+    
+    data = make_pend_dataset(**kwargs)
 
-    path = '{}/{}-doublepend-dataset.pkl'.format(save_dir, experiment_name)
+    # path = '{}/{}-doublepend-dataset.pkl'.format(save_dir, experiment_name)
 
-    try:
-        data = from_pickle(path)
-        print("Successfully loaded data from {}".format(path))
-    except:
-        print("Had a problem loading data from {}. Rebuilding dataset...".format(path))
-        data = make_pend_dataset(**kwargs)
-        to_pickle(data, path)
+    # try:
+    #     data = from_pickle(path)
+    #     print("Successfully loaded data from {}".format(path))
+    # except:
+    #     print("Had a problem loading data from {}. Rebuilding dataset...".format(path))
+    #     data = make_pend_dataset(**kwargs)
+    #     to_pickle(data, path)
 
     return data

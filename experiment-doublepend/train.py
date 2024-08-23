@@ -49,7 +49,7 @@ def train(args):
 
   # arrange data
   data = get_dataset(args.name, args.save_dir, seed=args.seed)
-  x = torch.tensor( data['x'], requires_grad=True, dtype=torch.float32)
+  x = torch.tensor( np.array(data['x']), requires_grad=True, dtype=torch.float32)
   test_x = torch.tensor( data['test_x'], requires_grad=True, dtype=torch.float32)
   dxdt = torch.Tensor(data['dx'])
   test_dxdt = torch.Tensor(data['test_dx'])
