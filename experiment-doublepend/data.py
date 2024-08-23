@@ -43,12 +43,17 @@ def dynamics_fn(t, coords):
     S = jnp.concatenate([dpdt, -dqdt], axis=-1)
     return S
 
-def get_trajectory(t_span=[0, 3], timescale=15, radius=None, y0=None, noise_std=0.1, **kwargs):
+def get_trajectory(t_span=[0, 3],
+                   timescale=15,
+                   radius=None,
+                   y0=[jnp.pi / 4, jnp.pi / 4, 0.0, 0.0],
+                   noise_std=0.1, **kwargs):
     t_eval = jnp.linspace(t_span[0], t_span[1], int(timescale * (t_span[1] - t_span[0])))
-    # pop key from kwargs
-    subkey1, subkey2 = jax.random.split(kwargs.pop('key'))
-    
-    y0 = [jnp.pi / 4, jnp.pi / 4, 0.0, 0.0]
+    # pop key from kwargs if present; create if not; NOTE - non ideal jax work around; consider complete modularized refactor with factory pattern (or otherwise)
+    if 'key' in kwargs:
+        subkey1, subkey2 = jax.random.split(kwargs.pop('key'))
+    else:
+        subkey1, subkey2 = jax.random.split(jax.random.PRNGKey(42))
 
     doublepend_ivp = solve_ivp(fun=dynamics_fn, t_span=t_span, y0=y0, t_eval=t_eval, rtol=1e-10, **kwargs)
     q, p = doublepend_ivp['y'][:2], doublepend_ivp['y'][2:]
@@ -99,20 +104,24 @@ def get_field(xmin=-1.2, xmax=1.2, ymin=-1.2, ymax=1.2, gridsize=20):
 
 
 ##### LOAD OR SAVE THE DATASET #####
-def get_dataset(experiment_name, save_dir, **kwargs):
-    '''Returns an orbital dataset. Also constructs
-    the dataset if no saved version is available.'''
-    
-    data = make_pend_dataset(**kwargs)
+def get_dataset(experiment_name, save_dir, force_recalc=False, **kwargs):
+    '''Returns double pend dataset. Also constructs
+    the dataset if no saved version is available or if
+    force_recalc is True.'''
 
-    # path = '{}/{}-doublepend-dataset.pkl'.format(save_dir, experiment_name)
+    path = '{}/{}-dataset.pkl'.format(save_dir, experiment_name)
 
-    # try:
-    #     data = from_pickle(path)
-    #     print("Successfully loaded data from {}".format(path))
-    # except:
-    #     print("Had a problem loading data from {}. Rebuilding dataset...".format(path))
-    #     data = make_pend_dataset(**kwargs)
-    #     to_pickle(data, path)
+    if force_recalc:
+        print("Force recalculation is enabled. Rebuilding dataset...")
+        data = make_pend_dataset(**kwargs)
+        to_pickle(data, path)
+    else:
+        try:
+            data = from_pickle(path)
+            print("Successfully loaded data from {}".format(path))
+        except:
+            print("Had a problem loading data from {}. Rebuilding dataset...".format(path))
+            data = make_pend_dataset(**kwargs)
+            to_pickle(data, path)
 
     return data
